@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <title>Welcome</title>
+  <style>
+    #timer {
+      color: red;
+      font-weight: bold;
+    }
+  </style>
+  <link rel="stylesheet" href="/styles.css">
+</head>
+
+<body>
+  <h2>Welcome <span id="username"></span>!</h2>
+  <p>You have successfully logged in.</p>
+  <p>Session expires in: <span id="timer">30</span> seconds</p>
+  <button onclick="logout()">Logout</button>
+
+  <script>
+    async function checkSession() {
+      try {
+        const response = await fetch('/auth/check-session', {
+          credentials: 'include'
+        });
+        const data = await response.json();
+
+        if (!data.isValid) {
+          alert('Session expired! Please login again.');
+          window.location.href = '/auth/login';
+        } else {
+          document.getElementById('username').textContent = data.username;
+        }
+      } catch (error) {
+        console.error('Error checking session:', error);
+      }
+    }
+
+    let timeLeft = 30;
+    const timerElement = document.getElementById('timer');
+
+    const timer = setInterval(() => {
+      timeLeft--;
+      timerElement.textContent = timeLeft;
+
+      if (timeLeft <= 0) {
+        clearInterval(timer);
+        alert('Session expired! Please login again.');
+        window.location.href = '/auth/login';
+      }
+    }, 1000);
+
+    setInterval(checkSession, 1000);
+
+    checkSession();
+
+    async function logout() {
+      try {
+        const response = await fetch('/auth/logout', {
+          method: 'POST',
+          credentials: 'include'
+        });
+
+        if (response.ok) {
+          window.location.href = '/auth/login';
+        }
+      } catch (error) {
+        console.error('Error logging out:', error);
+      }
+    }
+  </script>
+</body>
+
+</html>
